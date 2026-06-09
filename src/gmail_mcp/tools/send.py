@@ -20,14 +20,16 @@ def register(mcp) -> None:
         attachments: list[str] | None = None,
         sender: str | None = None,
         account: str | None = None,
+        password: str | None = None,
     ) -> dict:
         """Send a new email.
 
         `to`/`cc`/`bcc`: recipient address lists. `attachments`: file paths on the server host.
         `sender`: optional explicit From (defaults to the account's primary send-as address).
         Provide `body_text` and/or `body_html`.
+        `password`: the account's password — required when password protection is enabled.
         """
-        c = client_for(account)
+        c = client_for(account, password)
         msg = build_mime(
             to=to,
             cc=cc,
@@ -49,12 +51,13 @@ def register(mcp) -> None:
         cc: list[str] | None = None,
         attachments: list[str] | None = None,
         account: str | None = None,
+        password: str | None = None,
     ) -> dict:
         """Reply to a message, keeping it in the same thread.
 
         `reply_all=True` also copies the original To/Cc recipients (minus yourself).
         """
-        c = client_for(account)
+        c = client_for(account, password)
         orig = c.execute(
             c.users.messages().get(
                 userId="me", id=message_id, format="metadata", metadataHeaders=_REPLY_HEADERS
@@ -109,12 +112,13 @@ def register(mcp) -> None:
         bcc: list[str] | None = None,
         include_attachments: bool = True,
         account: str | None = None,
+        password: str | None = None,
     ) -> dict:
         """Forward a message to new recipients, optionally re-attaching its attachments.
 
         `body_text` is prepended before the quoted original. Starts a new thread.
         """
-        c = client_for(account)
+        c = client_for(account, password)
         orig = c.fetch_message(message_id, "full")
         rendered = c.render_message(orig, include_body=True)
         h = c.headers_dict(orig.get("payload", {}))

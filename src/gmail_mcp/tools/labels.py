@@ -11,9 +11,9 @@ from ._common import as_list, client_for
 
 def register(mcp) -> None:
     @mcp.tool()
-    def list_labels(account: str | None = None) -> dict:
+    def list_labels(account: str | None = None, password: str | None = None) -> dict:
         """List all labels (system and user) with their ids."""
-        c = client_for(account)
+        c = client_for(account, password)
         return {"labels": c.labels(refresh=True)}
 
     @mcp.tool()
@@ -22,9 +22,10 @@ def register(mcp) -> None:
         label_list_visibility: str = "labelShow",
         message_list_visibility: str = "show",
         account: str | None = None,
+        password: str | None = None,
     ) -> dict:
         """Create a label. Use '/' in `name` for nesting (e.g. 'Clients/Acme')."""
-        c = client_for(account)
+        c = client_for(account, password)
         body = {
             "name": name,
             "labelListVisibility": label_list_visibility,
@@ -41,9 +42,10 @@ def register(mcp) -> None:
         label_list_visibility: str | None = None,
         message_list_visibility: str | None = None,
         account: str | None = None,
+        password: str | None = None,
     ) -> dict:
         """Rename or change visibility of a label (identified by name or id)."""
-        c = client_for(account)
+        c = client_for(account, password)
         label_id = c.resolve_label_id(label)
         body = {}
         if name is not None:
@@ -57,9 +59,11 @@ def register(mcp) -> None:
         return updated
 
     @mcp.tool()
-    def delete_label(label: str, account: str | None = None) -> dict:
+    def delete_label(
+        label: str, account: str | None = None, password: str | None = None
+    ) -> dict:
         """Delete a label (identified by name or id)."""
-        c = client_for(account)
+        c = client_for(account, password)
         label_id = c.resolve_label_id(label)
         c.execute(c.users.labels().delete(userId="me", id=label_id))
         c.invalidate_labels()
@@ -67,10 +71,13 @@ def register(mcp) -> None:
 
     @mcp.tool()
     def label_message(
-        message_id: str, labels: list[str], account: str | None = None
+        message_id: str,
+        labels: list[str],
+        account: str | None = None,
+        password: str | None = None,
     ) -> dict:
         """Add one or more labels to a message."""
-        c = client_for(account)
+        c = client_for(account, password)
         ids = c.resolve_label_ids(as_list(labels))
         return c.execute(
             c.users.messages().modify(
@@ -80,10 +87,13 @@ def register(mcp) -> None:
 
     @mcp.tool()
     def unlabel_message(
-        message_id: str, labels: list[str], account: str | None = None
+        message_id: str,
+        labels: list[str],
+        account: str | None = None,
+        password: str | None = None,
     ) -> dict:
         """Remove one or more labels from a message."""
-        c = client_for(account)
+        c = client_for(account, password)
         ids = c.resolve_label_ids(as_list(labels))
         return c.execute(
             c.users.messages().modify(
@@ -92,9 +102,14 @@ def register(mcp) -> None:
         )
 
     @mcp.tool()
-    def label_thread(thread_id: str, labels: list[str], account: str | None = None) -> dict:
+    def label_thread(
+        thread_id: str,
+        labels: list[str],
+        account: str | None = None,
+        password: str | None = None,
+    ) -> dict:
         """Add one or more labels to every message in a thread."""
-        c = client_for(account)
+        c = client_for(account, password)
         ids = c.resolve_label_ids(as_list(labels))
         return c.execute(
             c.users.threads().modify(
@@ -103,9 +118,14 @@ def register(mcp) -> None:
         )
 
     @mcp.tool()
-    def unlabel_thread(thread_id: str, labels: list[str], account: str | None = None) -> dict:
+    def unlabel_thread(
+        thread_id: str,
+        labels: list[str],
+        account: str | None = None,
+        password: str | None = None,
+    ) -> dict:
         """Remove one or more labels from every message in a thread."""
-        c = client_for(account)
+        c = client_for(account, password)
         ids = c.resolve_label_ids(as_list(labels))
         return c.execute(
             c.users.threads().modify(

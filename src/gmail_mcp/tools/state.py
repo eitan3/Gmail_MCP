@@ -22,41 +22,57 @@ def _modify(client, message_id, add=None, remove=None):
 
 def register(mcp) -> None:
     @mcp.tool()
-    def mark_read(message_id: str, account: str | None = None) -> dict:
+    def mark_read(
+        message_id: str, account: str | None = None, password: str | None = None
+    ) -> dict:
         """Mark a message as read (removes the UNREAD label)."""
-        return _modify(client_for(account), message_id, remove=["UNREAD"])
+        return _modify(client_for(account, password), message_id, remove=["UNREAD"])
 
     @mcp.tool()
-    def mark_unread(message_id: str, account: str | None = None) -> dict:
+    def mark_unread(
+        message_id: str, account: str | None = None, password: str | None = None
+    ) -> dict:
         """Mark a message as unread (adds the UNREAD label)."""
-        return _modify(client_for(account), message_id, add=["UNREAD"])
+        return _modify(client_for(account, password), message_id, add=["UNREAD"])
 
     @mcp.tool()
-    def star(message_id: str, account: str | None = None) -> dict:
+    def star(
+        message_id: str, account: str | None = None, password: str | None = None
+    ) -> dict:
         """Star a message."""
-        return _modify(client_for(account), message_id, add=["STARRED"])
+        return _modify(client_for(account, password), message_id, add=["STARRED"])
 
     @mcp.tool()
-    def unstar(message_id: str, account: str | None = None) -> dict:
+    def unstar(
+        message_id: str, account: str | None = None, password: str | None = None
+    ) -> dict:
         """Remove the star from a message."""
-        return _modify(client_for(account), message_id, remove=["STARRED"])
+        return _modify(client_for(account, password), message_id, remove=["STARRED"])
 
     @mcp.tool()
-    def archive(message_id: str, account: str | None = None) -> dict:
+    def archive(
+        message_id: str, account: str | None = None, password: str | None = None
+    ) -> dict:
         """Archive a message (removes it from the Inbox)."""
-        return _modify(client_for(account), message_id, remove=["INBOX"])
+        return _modify(client_for(account, password), message_id, remove=["INBOX"])
 
     @mcp.tool()
-    def move_to_inbox(message_id: str, account: str | None = None) -> dict:
+    def move_to_inbox(
+        message_id: str, account: str | None = None, password: str | None = None
+    ) -> dict:
         """Move a message back to the Inbox."""
-        return _modify(client_for(account), message_id, add=["INBOX"])
+        return _modify(client_for(account, password), message_id, add=["INBOX"])
 
     @mcp.tool()
-    def mark_important(message_id: str, account: str | None = None) -> dict:
+    def mark_important(
+        message_id: str, account: str | None = None, password: str | None = None
+    ) -> dict:
         """Mark a message as important."""
-        return _modify(client_for(account), message_id, add=["IMPORTANT"])
+        return _modify(client_for(account, password), message_id, add=["IMPORTANT"])
 
     @mcp.tool()
-    def mark_not_important(message_id: str, account: str | None = None) -> dict:
+    def mark_not_important(
+        message_id: str, account: str | None = None, password: str | None = None
+    ) -> dict:
         """Mark a message as not important."""
-        return _modify(client_for(account), message_id, remove=["IMPORTANT"])
+        return _modify(client_for(account, password), message_id, remove=["IMPORTANT"])

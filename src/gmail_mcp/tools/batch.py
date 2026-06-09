@@ -15,12 +15,13 @@ def register(mcp) -> None:
         add_labels: list[str] | None = None,
         remove_labels: list[str] | None = None,
         account: str | None = None,
+        password: str | None = None,
     ) -> dict:
         """Add and/or remove labels across many messages in one call.
 
         `add_labels`/`remove_labels` accept label names or ids.
         """
-        c = client_for(account)
+        c = client_for(account, password)
         body: dict = {"ids": message_ids}
         if add_labels:
             body["addLabelIds"] = c.resolve_label_ids(as_list(add_labels))
@@ -30,9 +31,11 @@ def register(mcp) -> None:
         return {"modified": len(message_ids)}
 
     @mcp.tool()
-    def batch_trash(message_ids: list[str], account: str | None = None) -> dict:
+    def batch_trash(
+        message_ids: list[str], account: str | None = None, password: str | None = None
+    ) -> dict:
         """Move many messages to Trash in one call."""
-        c = client_for(account)
+        c = client_for(account, password)
         c.execute(
             c.users.messages().batchModify(
                 userId="me", body={"ids": message_ids, "addLabelIds": ["TRASH"]}
@@ -41,9 +44,11 @@ def register(mcp) -> None:
         return {"trashed": len(message_ids)}
 
     @mcp.tool()
-    def batch_untrash(message_ids: list[str], account: str | None = None) -> dict:
+    def batch_untrash(
+        message_ids: list[str], account: str | None = None, password: str | None = None
+    ) -> dict:
         """Restore many messages from Trash in one call."""
-        c = client_for(account)
+        c = client_for(account, password)
         c.execute(
             c.users.messages().batchModify(
                 userId="me", body={"ids": message_ids, "removeLabelIds": ["TRASH"]}

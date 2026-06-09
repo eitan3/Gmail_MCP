@@ -6,17 +6,37 @@ variables** — the host running the server never needs a `credentials.json` or 
 
 - One shared Google OAuth "Desktop" client authorizes every account.
 - Each account contributes only its **refresh token**.
-- Every tool takes an optional `account` argument to pick the mailbox.
+- Every tool takes an `account` argument to pick the mailbox and an optional `password` (see below).
 
-## How credentials work (2 env vars)
+## How credentials work (2 env vars + 1 optional)
 
-| Variable | Format | Example |
-| --- | --- | --- |
-| `GMAIL_CLIENT` | `client_id\|client_secret` | `123-abc.apps.googleusercontent.com\|GOCSPX-xxxx` |
-| `GMAIL_ACCOUNTS` | `selector=refresh_token` pairs, separated by `;` or newlines | `alice@gmail.com=1//0gFoo;work=1//0gBar` |
+| Variable | Required | Format | Example |
+| --- | --- | --- | --- |
+| `GMAIL_CLIENT` | yes | `client_id\|client_secret` | `123-abc.apps.googleusercontent.com\|GOCSPX-xxxx` |
+| `GMAIL_ACCOUNTS` | yes | `selector=refresh_token` pairs, separated by `;` or newlines | `alice@gmail.com=1//0gFoo;work=1//0gBar` |
+| `PASSWORDS` | no | `selector=password` pairs, separated by `;` or newlines | `alice@gmail.com=hunter2;work=s3cret` |
 
 The `selector` defaults to the account's email but you can rename it to a short alias
-(`work`, `personal`). You never hand-write these values — the `gmail-mcp-auth` command prints them.
+(`work`, `personal`). You never hand-write the credential values — the `gmail-mcp-auth` command prints them.
+
+### Password protection (optional)
+
+Set `PASSWORDS` to require a per-account password on **every** tool call. When it's set, the
+gate is **on**: each call must pass `password` matching that account's entry, or the tool returns
+`Invalid password for account '…'` and does nothing (no Gmail request is made). Passwords are
+compared in constant time. Notes:
+
+- Keys must match your `GMAIL_ACCOUNTS` selectors (case-insensitively). A `PASSWORDS` key that
+  matches no account makes the server **refuse to start**. An account with no `PASSWORDS` entry is
+  **locked** (no password can unlock it) while the gate is on — the server logs which accounts are
+  locked at startup.
+- Passwords cannot contain `=`, `;`, or newlines (those are the separators), and leading/trailing
+  whitespace is trimmed. Pick passwords without those characters.
+- **Fail-closed:** if `PASSWORDS` is set but has no valid `selector=password` entries (e.g. only
+  separators), the server errors out instead of silently running unprotected. Only an *absent* (or
+  blank) `PASSWORDS` turns the gate off, in which case the `password` argument is ignored.
+- Comparison is case-sensitive and constant-time. This is an authorization gate for the calling
+  agent, not transport encryption — the value lives in the same environment as the tokens.
 
 ## One-time setup
 
@@ -61,7 +81,8 @@ port over SSH if consent happens on another machine).
       "args": ["gmail-mcp"],
       "env": {
         "GMAIL_CLIENT": "…id…|…secret…",
-        "GMAIL_ACCOUNTS": "alice@gmail.com=1//0g…;work=1//0g…"
+        "GMAIL_ACCOUNTS": "alice@gmail.com=1//0g…;work=1//0g…",
+        "PASSWORDS": "alice@gmail.com=hunter2;work=s3cret"
       }
     }
   }
@@ -85,7 +106,17 @@ port over SSH if consent happens on another machine).
 **Batch (extra)** `batch_modify_messages` · `batch_trash` · `batch_untrash`
 
 Every tool accepts `account` (alias or email). With a single configured account it's optional;
-with several, omitting it returns an error listing the available selectors.
+with several, omitting it returns an error listing the available selectors. Every tool also accepts
+`password`, which is required only when `PASSWORDS` is configured (see *Password protection* above).
+
+Example tool call (`tools/call` arguments) with the password gate enabled:
+
+```json
+{
+  "name": "search_messages",
+  "arguments": { "account": "work", "password": "s3cret", "query": "is:unread", "max_results": 10 }
+}
+```
 
 Label arguments accept human names (e.g. `Clients/Acme`) or raw label ids. Search tools use
 [Gmail query syntax](https://support.google.com/mail/answer/7190) (e.g. `is:unread from:alice

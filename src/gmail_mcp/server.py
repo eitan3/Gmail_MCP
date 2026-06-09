@@ -27,10 +27,20 @@ def main() -> None:
         raise SystemExit(2)
 
     set_store(store)
+    gate = "ON (password required per call)" if store.password_gate_enabled else "off"
     print(
-        f"[gmail-mcp] ready with {len(store)} account(s): {', '.join(store.selectors)}",
+        f"[gmail-mcp] ready with {len(store)} account(s): {', '.join(store.selectors)} "
+        f"| password gate: {gate}",
         file=sys.stderr,
     )
+    if store.password_gate_enabled:
+        locked = store.accounts_without_password()
+        if locked:
+            print(
+                f"[gmail-mcp] note: {len(locked)} account(s) have no password and are locked: "
+                + ", ".join(locked),
+                file=sys.stderr,
+            )
     mcp.run()  # stdio transport is FastMCP's default
 
 

@@ -40,9 +40,10 @@ def register(mcp) -> None:
         sender: str | None = None,
         thread_id: str | None = None,
         account: str | None = None,
+        password: str | None = None,
     ) -> dict:
         """Create a draft. `thread_id` attaches it to an existing thread (e.g. a reply draft)."""
-        c = client_for(account)
+        c = client_for(account, password)
         body = _draft_message_body(
             to=to,
             cc=cc,
@@ -58,10 +59,13 @@ def register(mcp) -> None:
 
     @mcp.tool()
     def list_drafts(
-        max_results: int = 25, page_token: str | None = None, account: str | None = None
+        max_results: int = 25,
+        page_token: str | None = None,
+        account: str | None = None,
+        password: str | None = None,
     ) -> dict:
         """List drafts with subject/recipient summaries and `next_page_token`."""
-        c = client_for(account)
+        c = client_for(account, password)
         resp = c.execute(
             c.users.drafts().list(userId="me", maxResults=max_results, pageToken=page_token)
         )
@@ -87,9 +91,11 @@ def register(mcp) -> None:
         return {"drafts": drafts, "next_page_token": resp.get("nextPageToken")}
 
     @mcp.tool()
-    def send_draft(draft_id: str, account: str | None = None) -> dict:
+    def send_draft(
+        draft_id: str, account: str | None = None, password: str | None = None
+    ) -> dict:
         """Send an existing draft."""
-        c = client_for(account)
+        c = client_for(account, password)
         return c.execute(c.users.drafts().send(userId="me", body={"id": draft_id}))
 
     @mcp.tool()
@@ -105,9 +111,10 @@ def register(mcp) -> None:
         sender: str | None = None,
         thread_id: str | None = None,
         account: str | None = None,
+        password: str | None = None,
     ) -> dict:
         """Replace a draft's contents (Gmail replaces the whole message — pass all fields you want)."""
-        c = client_for(account)
+        c = client_for(account, password)
         body = _draft_message_body(
             to=to,
             cc=cc,
@@ -122,8 +129,10 @@ def register(mcp) -> None:
         return c.execute(c.users.drafts().update(userId="me", id=draft_id, body=body))
 
     @mcp.tool()
-    def delete_draft(draft_id: str, account: str | None = None) -> dict:
+    def delete_draft(
+        draft_id: str, account: str | None = None, password: str | None = None
+    ) -> dict:
         """Permanently delete a draft (the draft only — not a sent message)."""
-        c = client_for(account)
+        c = client_for(account, password)
         c.execute(c.users.drafts().delete(userId="me", id=draft_id))
         return {"deleted": draft_id}

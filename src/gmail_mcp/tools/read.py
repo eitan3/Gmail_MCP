@@ -34,19 +34,25 @@ def _summaries(client, messages: list[dict]) -> list[dict]:
 
 def register(mcp) -> None:
     @mcp.tool()
-    def get_profile(account: str | None = None) -> dict:
+    def get_profile(account: str | None = None, password: str | None = None) -> dict:
         """Get the Gmail profile (email address, message/thread totals, historyId).
 
         `account`: which configured account to use (alias or email). Optional when only one
         account is configured.
+        `password`: the account's password — required when password protection is enabled.
         """
-        c = client_for(account)
+        c = client_for(account, password)
         return c.execute(c.users.getProfile(userId="me"))
 
     @mcp.tool()
-    def get_message(message_id: str, include_body: bool = True, account: str | None = None) -> dict:
+    def get_message(
+        message_id: str,
+        include_body: bool = True,
+        account: str | None = None,
+        password: str | None = None,
+    ) -> dict:
         """Get a single message fully decoded: headers, snippet, text/HTML body, attachment list."""
-        c = client_for(account)
+        c = client_for(account, password)
         msg = c.fetch_message(message_id, "full")
         return c.render_message(msg, include_body=include_body)
 
@@ -57,12 +63,13 @@ def register(mcp) -> None:
         page_token: str | None = None,
         include_spam_trash: bool = False,
         account: str | None = None,
+        password: str | None = None,
     ) -> dict:
         """Search messages using Gmail query syntax (e.g. 'is:unread from:alice newer_than:7d').
 
         Returns message summaries plus `next_page_token` for pagination.
         """
-        c = client_for(account)
+        c = client_for(account, password)
         resp = c.execute(
             c.users.messages().list(
                 userId="me",
@@ -85,9 +92,10 @@ def register(mcp) -> None:
         page_token: str | None = None,
         include_spam_trash: bool = False,
         account: str | None = None,
+        password: str | None = None,
     ) -> dict:
         """Search threads using Gmail query syntax. Returns thread stubs + `next_page_token`."""
-        c = client_for(account)
+        c = client_for(account, password)
         resp = c.execute(
             c.users.threads().list(
                 userId="me",
@@ -105,10 +113,13 @@ def register(mcp) -> None:
 
     @mcp.tool()
     def get_thread(
-        thread_id: str, include_body: bool = True, account: str | None = None
+        thread_id: str,
+        include_body: bool = True,
+        account: str | None = None,
+        password: str | None = None,
     ) -> dict:
         """Get a full thread with every message decoded."""
-        c = client_for(account)
+        c = client_for(account, password)
         thread = c.execute(c.users.threads().get(userId="me", id=thread_id, format="full"))
         return {
             "id": thread.get("id"),

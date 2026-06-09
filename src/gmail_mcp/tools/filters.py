@@ -7,14 +7,15 @@ system labels Gmail uses under the hood.
 
 from __future__ import annotations
 
+from ..errors import GmailMcpError
 from ._common import as_list, client_for
 
 
 def register(mcp) -> None:
     @mcp.tool()
-    def list_filters(account: str | None = None) -> dict:
+    def list_filters(account: str | None = None, password: str | None = None) -> dict:
         """List all filters with their ids, criteria, and actions."""
-        c = client_for(account)
+        c = client_for(account, password)
         resp = c.execute(c.users.settings().filters().list(userId="me"))
         return {"filters": resp.get("filter", [])}
 
@@ -40,6 +41,7 @@ def register(mcp) -> None:
         never_spam: bool = False,
         trash: bool = False,
         account: str | None = None,
+        password: str | None = None,
     ) -> dict:
         """Create a filter.
 
@@ -50,7 +52,7 @@ def register(mcp) -> None:
         `mark_read`, `archive` (skip Inbox), `star`, `mark_important`, `never_mark_important`,
         `never_spam`, `trash`.
         """
-        c = client_for(account)
+        c = client_for(account, password)
 
         criteria: dict = {}
         if from_address:
@@ -98,12 +100,8 @@ def register(mcp) -> None:
             action["forward"] = forward_to
 
         if not criteria:
-            from ..errors import GmailMcpError
-
             raise GmailMcpError("create_filter needs at least one criterion.")
         if not action:
-            from ..errors import GmailMcpError
-
             raise GmailMcpError("create_filter needs at least one action.")
 
         return c.execute(
@@ -113,8 +111,10 @@ def register(mcp) -> None:
         )
 
     @mcp.tool()
-    def delete_filter(filter_id: str, account: str | None = None) -> dict:
+    def delete_filter(
+        filter_id: str, account: str | None = None, password: str | None = None
+    ) -> dict:
         """Delete a filter by id (get ids from list_filters)."""
-        c = client_for(account)
+        c = client_for(account, password)
         c.execute(c.users.settings().filters().delete(userId="me", id=filter_id))
         return {"deleted": filter_id}

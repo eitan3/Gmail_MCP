@@ -24,6 +24,10 @@ class AccountNotFoundError(GmailMcpError):
     """Raised when a tool is called with an `account` selector that isn't configured."""
 
 
+class InvalidPasswordError(GmailMcpError):
+    """Raised when password protection is enabled and the supplied password is wrong/missing."""
+
+
 class GmailApiError(GmailMcpError):
     """A Gmail API call failed. Carries the HTTP status and Google's reason when available."""
 

@@ -7,19 +7,24 @@ from ._common import client_for
 
 def register(mcp) -> None:
     @mcp.tool()
-    def get_signature(send_as: str | None = None, account: str | None = None) -> dict:
+    def get_signature(
+        send_as: str | None = None, account: str | None = None, password: str | None = None
+    ) -> dict:
         """Get the HTML signature for a send-as address (defaults to the primary address)."""
-        c = client_for(account)
+        c = client_for(account, password)
         addr = send_as or c.email_address()
         sa = c.execute(c.users.settings().sendAs().get(userId="me", sendAsEmail=addr))
         return {"sendAsEmail": addr, "signature": sa.get("signature", "")}
 
     @mcp.tool()
     def update_signature(
-        signature_html: str, send_as: str | None = None, account: str | None = None
+        signature_html: str,
+        send_as: str | None = None,
+        account: str | None = None,
+        password: str | None = None,
     ) -> dict:
         """Set the HTML signature for a send-as address (defaults to the primary address)."""
-        c = client_for(account)
+        c = client_for(account, password)
         addr = send_as or c.email_address()
         sa = c.execute(
             c.users.settings()
@@ -29,9 +34,11 @@ def register(mcp) -> None:
         return {"sendAsEmail": addr, "signature": sa.get("signature", "")}
 
     @mcp.tool()
-    def get_vacation_responder(account: str | None = None) -> dict:
+    def get_vacation_responder(
+        account: str | None = None, password: str | None = None
+    ) -> dict:
         """Get the vacation responder (auto-reply) settings."""
-        c = client_for(account)
+        c = client_for(account, password)
         return c.execute(c.users.settings().getVacation(userId="me"))
 
     @mcp.tool()
@@ -45,13 +52,14 @@ def register(mcp) -> None:
         start_time: str | None = None,
         end_time: str | None = None,
         account: str | None = None,
+        password: str | None = None,
     ) -> dict:
         """Enable or disable the vacation responder.
 
         `start_time`/`end_time` are epoch-milliseconds strings (omit for no bound).
         `restrict_to_contacts`/`restrict_to_domain` limit who receives the auto-reply.
         """
-        c = client_for(account)
+        c = client_for(account, password)
         body: dict = {"enableAutoReply": enabled}
         if subject is not None:
             body["responseSubject"] = subject
