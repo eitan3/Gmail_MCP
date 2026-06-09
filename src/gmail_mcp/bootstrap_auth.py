@@ -74,16 +74,25 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument(
         "--port", type=int, default=0, help="Local redirect port (0 = pick a free port)"
     )
+    parser.add_argument(
+        "--login-hint",
+        help="Email to pre-select in the Google account chooser (use this to target a specific "
+        "account when several are signed in)",
+    )
     args = parser.parse_args(argv)
 
     client_id, client_secret = _resolve_client(args)
 
     flow = InstalledAppFlow.from_client_config(_client_config(client_id, client_secret), SCOPES)
+    extra: dict = {}
+    if args.login_hint:
+        extra["login_hint"] = args.login_hint
     creds = flow.run_local_server(
         port=args.port,
         open_browser=not args.no_browser,
         access_type="offline",
         prompt="consent",
+        **extra,
     )
 
     if not creds.refresh_token:

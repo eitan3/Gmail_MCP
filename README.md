@@ -69,6 +69,13 @@ Add more accounts (re-uses the client from `GMAIL_CLIENT` in your env if set):
 gmail-mcp-auth --merge --alias work     # prints the full merged GMAIL_ACCOUNTS
 ```
 
+If several Google accounts are signed into your browser, pass `--login-hint you@example.com` to
+target the right one (also handy for re-consenting a specific account after a scope upgrade):
+
+```bash
+gmail-mcp-auth --merge --login-hint personal@gmail.com
+```
+
 Headless host? Use `--no-browser` and open the printed URL yourself (forward the redirect
 port over SSH if consent happens on another machine).
 
