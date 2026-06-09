@@ -41,6 +41,24 @@ T = TypeVar("T")
 
 # HTTP statuses worth retrying with backoff (rate limits + transient server errors).
 _RETRY_STATUSES = {429, 500, 502, 503, 504}
+# Google Calendar (and sometimes Gmail) return HTTP 403 — not 429 — for rate/quota limits.
+# Retry those, but NOT permission/scope 403s, which these substrings distinguish.
+_RATE_LIMIT_HINTS = ("rate limit", "ratelimit", "quota", "user rate", "userratelimit")
+
+
+def _reason_of(err: "HttpError") -> str:
+    try:
+        return err._get_reason()  # type: ignore[attr-defined]
+    except Exception:  # pragma: no cover
+        return str(err)
+
+
+def _is_retryable(status: int | None, reason: str | None) -> bool:
+    if status in _RETRY_STATUSES:
+        return True
+    if status == 403 and reason and any(h in reason.lower() for h in _RATE_LIMIT_HINTS):
+        return True
+    return False
 
 
 def _status_of(err: "HttpError") -> int | None:
@@ -64,17 +82,19 @@ def execute(request: Any, *, retries: int = 4, base_delay: float = 0.5) -> Any:
         except Exception as err:  # noqa: BLE001 - normalise to our own error type
             if HttpError is not None and isinstance(err, HttpError):
                 status = _status_of(err)
-                if status in _RETRY_STATUSES and attempt < retries:
+                reason = _reason_of(err)
+                if _is_retryable(status, reason) and attempt < retries:
                     delay = base_delay * (2**attempt) + random.uniform(0, 0.25)
                     time.sleep(delay)
                     attempt += 1
                     continue
-                reason = None
-                try:
-                    reason = err._get_reason()  # type: ignore[attr-defined]
-                except Exception:  # pragma: no cover
-                    reason = str(err)
-                raise GmailApiError(
-                    f"Gmail API error ({status}): {reason}", status=status, reason=reason
-                ) from err
+                message = f"Google API error ({status}): {reason}"
+                # A 403 about insufficient scopes almost always means the account's token
+                # predates a scope upgrade (e.g. Calendar was added). Point the user at re-auth.
+                if status == 403 and reason and "insufficient" in reason.lower():
+                    message += (
+                        " — this account's token lacks the required scope; re-run "
+                        "`gmail-mcp-auth` to re-consent, then update GMAIL_ACCOUNTS."
+                    )
+                raise GmailApiError(message, status=status, reason=reason) from err
             raise

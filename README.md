@@ -1,12 +1,13 @@
-# Gmail MCP Server
+# Gmail + Calendar MCP Server
 
-A multi-account [Model Context Protocol](https://modelcontextprotocol.io) server for Gmail.
-Runs over **stdio**, installs via **uvx**, and takes **all credentials from environment
-variables** — the host running the server never needs a `credentials.json` or `token.json` file.
+A multi-account [Model Context Protocol](https://modelcontextprotocol.io) server for **Gmail and
+Google Calendar** (72 tools). Runs over **stdio**, installs via **uvx**, and takes **all credentials
+from environment variables** — the host running the server never needs a `credentials.json` or
+`token.json` file.
 
 - One shared Google OAuth "Desktop" client authorizes every account.
-- Each account contributes only its **refresh token**.
-- Every tool takes an `account` argument to pick the mailbox and an optional `password` (see below).
+- Each account contributes only its **refresh token** (one token covers both Gmail and Calendar).
+- Every tool takes an `account` argument to pick the account and an optional `password` (see below).
 
 ## How credentials work (2 env vars + 1 optional)
 
@@ -122,9 +123,37 @@ Label arguments accept human names (e.g. `Clients/Acme`) or raw label ids. Searc
 [Gmail query syntax](https://support.google.com/mail/answer/7190) (e.g. `is:unread from:alice
 newer_than:7d`).
 
+## Google Calendar
+
+Calendar shares the same accounts and password gate — every calendar tool takes the same `account`
+and `password` arguments and is routed through the identical authentication path.
+
+**Events** `list_events` · `get_event` · `create_event` · `update_event` · `delete_event` ·
+`quick_add_event` · `move_event` · `list_event_instances` · `respond_to_event` · `import_event`
+**Calendars** `list_calendars` · `get_calendar` · `create_calendar` · `update_calendar` ·
+`delete_calendar` · `clear_calendar` · `subscribe_calendar` · `unsubscribe_calendar` ·
+`update_calendar_subscription`
+**Sharing** `list_acl` · `share_calendar` · `update_acl` · `unshare_calendar`
+**Misc** `get_freebusy` · `list_settings` · `get_setting` · `get_colors`
+
+Conventions:
+- **Time:** pass `start`/`end` as RFC3339 (`2026-06-15T10:00:00`) with `time_zone` (IANA, e.g.
+  `Asia/Jerusalem`), or set `all_day=true` with a `YYYY-MM-DD` date. Calendar ops default to the
+  `primary` calendar when `calendar_id` is omitted.
+- **Recurring:** `recurrence` is a list of RRULE strings, e.g. `["RRULE:FREQ=WEEKLY;BYDAY=MO;COUNT=8"]`.
+- **Invites:** `attendees` is an email list; `add_meet=true` attaches a Google Meet link;
+  `send_updates` ∈ `all`/`externalOnly`/`none` controls attendee notifications.
+- `extra_fields` (a dict) merges into the event body so any Calendar field is reachable.
+
+> ⚠️ **Re-auth required for Calendar.** Tokens minted before Calendar was added only have Gmail
+> scopes — Calendar calls return a 403 with a re-auth hint until you re-run `gmail-mcp-auth`
+> (re-consent) for each account and replace its token in `GMAIL_ACCOUNTS`. Gmail keeps working
+> throughout.
+
 ## Scopes
 
-`gmail.modify`, `gmail.compose`, `gmail.settings.basic`. No permanent delete — only Trash.
+Gmail: `gmail.modify`, `gmail.compose`, `gmail.settings.basic` (no permanent delete — only Trash).
+Calendar: `calendar`, `calendar.settings.readonly`.
 
 ## Local development
 

@@ -5,6 +5,10 @@ from __future__ import annotations
 from . import (
     attachments,
     batch,
+    cal_calendars,
+    cal_events,
+    cal_misc,
+    cal_sharing,
     drafts,
     filters,
     labels,
@@ -16,6 +20,7 @@ from . import (
 )
 
 _MODULES = [
+    # Gmail
     send,
     drafts,
     read,
@@ -26,6 +31,11 @@ _MODULES = [
     settings,
     state,
     batch,
+    # Calendar
+    cal_events,
+    cal_calendars,
+    cal_sharing,
+    cal_misc,
 ]
 
 

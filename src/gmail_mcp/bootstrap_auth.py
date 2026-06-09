@@ -1,9 +1,11 @@
 """`gmail-mcp-auth` — one-time OAuth consent flow that prints env-var values.
 
 Run this on a machine with a browser (your laptop). It performs Google's consent
-flow for one account using only the shared client id/secret (no credentials.json
-file), then prints the exact ``GMAIL_CLIENT`` and ``GMAIL_ACCOUNTS`` values to
-paste into the server's environment. Re-run with ``--merge`` to add more accounts.
+flow for one account (Gmail + Calendar scopes) using only the shared client
+id/secret (no credentials.json file), then prints the exact ``GMAIL_CLIENT`` and
+``GMAIL_ACCOUNTS`` values to paste into the server's environment. Re-run with
+``--merge`` to add more accounts — or to re-consent an existing account after a
+scope upgrade (the new token replaces the old one for that selector).
 
 Cross-platform: uses a localhost redirect + your default browser. For a headless
 host, use ``--no-browser`` and open the printed URL yourself (forward the local
