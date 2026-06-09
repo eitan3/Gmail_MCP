@@ -51,10 +51,12 @@ compared in constant time. Notes:
 ### 2. Authorize each account (on a machine with a browser)
 
 ```bash
-uvx --from . gmail-mcp-auth --client-id <ID> --client-secret <SECRET>
-# or, after publishing the package:
-uvx gmail-mcp-auth --client-id <ID> --client-secret <SECRET>
+uvx --from git+https://github.com/eitan3/Gmail_MCP.git gmail-mcp-auth --client-id <ID> --client-secret <SECRET>
 ```
+
+> ⚠️ Always install with `--from git+https://github.com/eitan3/Gmail_MCP.git`. A **different,
+> unrelated** package named `gmail-mcp` exists on PyPI, so the bare `uvx gmail-mcp` would run
+> *that* one instead of this repo.
 
 A browser opens for Google consent. On success the command prints:
 
@@ -86,7 +88,7 @@ port over SSH if consent happens on another machine).
   "mcpServers": {
     "gmail": {
       "command": "uvx",
-      "args": ["gmail-mcp"],
+      "args": ["--from", "git+https://github.com/eitan3/Gmail_MCP.git", "gmail-mcp"],
       "env": {
         "GMAIL_CLIENT": "…id…|…secret…",
         "GMAIL_ACCOUNTS": "alice@gmail.com=1//0g…;work=1//0g…",

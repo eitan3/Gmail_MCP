@@ -28,9 +28,13 @@ def main() -> None:
 
     set_store(store)
     gate = "ON (password required per call)" if store.password_gate_enabled else "off"
+    try:
+        tool_count = len(mcp._tool_manager.list_tools())
+    except Exception:  # pragma: no cover - defensive against FastMCP internals changing
+        tool_count = "?"
     print(
-        f"[gmail-mcp] ready with {len(store)} account(s): {', '.join(store.selectors)} "
-        f"| password gate: {gate}",
+        f"[gmail-mcp] {tool_count} tools | {len(store)} account(s): "
+        f"{', '.join(store.selectors)} | password gate: {gate}",
         file=sys.stderr,
     )
     if store.password_gate_enabled:
