@@ -51,12 +51,15 @@ compared in constant time. Notes:
 ### 2. Authorize each account (on a machine with a browser)
 
 ```bash
+# From PyPI (after publishing — see "Publishing" below):
+uvx --from gmail-calendar-mcp gmail-calendar-mcp-auth --client-id <ID> --client-secret <SECRET>
+
+# Or straight from GitHub, no publish needed:
 uvx --from git+https://github.com/eitan3/Gmail_MCP.git gmail-mcp-auth --client-id <ID> --client-secret <SECRET>
 ```
 
-> ⚠️ Always install with `--from git+https://github.com/eitan3/Gmail_MCP.git`. A **different,
-> unrelated** package named `gmail-mcp` exists on PyPI, so the bare `uvx gmail-mcp` would run
-> *that* one instead of this repo.
+> ⚠️ The bare name `gmail-mcp` belongs to an **unrelated** PyPI package — don't use it. This
+> project is published as **`gmail-calendar-mcp`**.
 
 A browser opens for Google consent. On success the command prints:
 
@@ -88,7 +91,7 @@ port over SSH if consent happens on another machine).
   "mcpServers": {
     "gmail": {
       "command": "uvx",
-      "args": ["--from", "git+https://github.com/eitan3/Gmail_MCP.git", "gmail-mcp"],
+      "args": ["gmail-calendar-mcp"],
       "env": {
         "GMAIL_CLIENT": "…id…|…secret…",
         "GMAIL_ACCOUNTS": "alice@gmail.com=1//0g…;work=1//0g…",
@@ -98,6 +101,24 @@ port over SSH if consent happens on another machine).
   }
 }
 ```
+
+`uvx gmail-calendar-mcp` works once the package is published to PyPI. Before that (or to skip
+PyPI entirely), use `"args": ["--from", "git+https://github.com/eitan3/Gmail_MCP.git", "gmail-mcp"]`.
+
+## Publishing to PyPI
+
+The bare-name `uvx gmail-calendar-mcp` requires the package on PyPI. To publish a release:
+
+```bash
+uv build                       # builds dist/*.whl and *.tar.gz
+uv publish --token pypi-XXXX   # upload (get the token from pypi.org -> Account -> API tokens)
+```
+
+- Create a free account at <https://pypi.org>, then **Account settings → API tokens → Add token**
+  (scope "Entire account" for the first upload). The token starts with `pypi-`.
+- Each upload needs a new `version` in `pyproject.toml` (PyPI rejects re-uploading the same version).
+- Prefer a quick dry run on TestPyPI first:
+  `uv publish --publish-url https://test.pypi.org/legacy/ --token <testpypi-token>`.
 
 ## Tools
 

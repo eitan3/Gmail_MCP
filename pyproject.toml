@@ -1,12 +1,12 @@
 [project]
-name = "gmail-mcp"
+name = "gmail-calendar-mcp"
 version = "0.2.0"
 description = "Multi-account Gmail + Google Calendar MCP server (stdio) with env-var-only OAuth credentials."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [{ name = "Eitan Hadar" }]
-keywords = ["gmail", "mcp", "model-context-protocol", "email"]
+keywords = ["gmail", "calendar", "mcp", "model-context-protocol", "email", "google-calendar"]
 
 dependencies = [
     "mcp>=1.27",
@@ -20,6 +20,10 @@ dependencies = [
 dev = ["pytest>=8.0"]
 
 [project.scripts]
+# Primary command names match the package name so bare `uvx gmail-calendar-mcp` works.
+gmail-calendar-mcp = "gmail_mcp.server:main"
+gmail-calendar-mcp-auth = "gmail_mcp.bootstrap_auth:main"
+# Short aliases (same commands).
 gmail-mcp = "gmail_mcp.server:main"
 gmail-mcp-auth = "gmail_mcp.bootstrap_auth:main"
 
